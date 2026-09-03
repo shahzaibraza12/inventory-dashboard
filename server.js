@@ -5,6 +5,11 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+const path = require('path');
+
+// Yeh line Express ko batayegi ke frontend files kahan hain
+app.use(express.static(__dirname));
+
 // Middleware
 app.use(cors());
 app.use(express.json());
