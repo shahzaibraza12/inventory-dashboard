@@ -294,7 +294,6 @@
         // Function to fetch inventory data from backend and populate table
         async function loadInventory() {
             try {
-                // Use relative URL so it works seamlessly both locally and on Vercel live
                 const response = await fetch('/api/inventory');
                 const result = await response.json();
                 
@@ -312,7 +311,7 @@
                         const row = `
                             <tr>
                                 <td>${item.id}</td>
-                                ${item.name}
+                                <td>${item.name}</td>
                                 <td>${item.sku}</td>
                                 <td>${item.category}</td>
                                 <td>$${item.price}</td>
