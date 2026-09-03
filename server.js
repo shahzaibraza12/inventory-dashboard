@@ -7,12 +7,17 @@ const PORT = process.env.PORT || 5000;
 
 const path = require('path');
 
-// Yeh line Express ko batayegi ke frontend files kahan hain
-app.use(express.static(__dirname));
-
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Yeh line Express ko batayegi ke frontend files kahan hain
+app.use(express.static(__dirname));
+
+// Root route par index.html bhejne ke liye taake "Cannot GET /" na aaye
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // In-Memory Inventory Data
 let inventoryItems = [
@@ -47,13 +52,7 @@ app.post('/api/inventory', (req, res) => {
   res.status(201).json({ success: true, message: 'Product added successfully', data: newItem });
 });
 
-// Start Server
-app.listen(PORT, () => {
-  console.log(`Backend Server running on port ${PORT}`);
-});
-
-
-// Delete a product from inventory
+// 3. Delete a product from inventory
 app.delete('/api/inventory/:id', (req, res) => {
   const itemIndex = inventoryItems.findIndex(i => i.id === parseInt(req.params.id));
   if (itemIndex === -1) return res.status(404).json({ success: false, message: 'Product not found' });
@@ -62,7 +61,7 @@ app.delete('/api/inventory/:id', (req, res) => {
   res.status(200).json({ success: true, message: 'Product deleted successfully', data: deletedItem[0] });
 });
 
-// Update an existing product / stock level
+// 4. Update an existing product / stock level
 app.put('/api/inventory/:id', (req, res) => {
   const itemIndex = inventoryItems.findIndex(i => i.id === parseInt(req.params.id));
   if (itemIndex === -1) return res.status(404).json({ success: false, message: 'Product not found' });
@@ -79,4 +78,9 @@ app.put('/api/inventory/:id', (req, res) => {
   };
 
   res.status(200).json({ success: true, message: 'Inventory updated successfully', data: inventoryItems[itemIndex] });
+});
+
+// Start Server (Isko hamesha aakhir mein rakhte hain)
+app.listen(PORT, () => {
+  console.log(`Backend Server running on port ${PORT}`);
 });
