@@ -11,17 +11,17 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// 1. Frontend static files configuration (Yeh inventory-frontend folder ko point kar raha hai)
-app.use(express.static(path.join(__dirname, '../inventory-frontend')));
+// 1. Static files configuration (Ab saari files ek hi folder mein hain)
+app.use(express.static(__dirname));
 
-// 2. Root route par ab hamesha login.html khulega
+// 2. Root route par ab login.html khulega
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../inventory-frontend/login.html'));
+    res.sendFile(path.join(__dirname, 'login.html'));
 });
 
 // 3. Dashboard route
 app.get('/dashboard', (req, res) => {
-    res.sendFile(path.join(__dirname, '../inventory-frontend/index.html'));
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // In-Memory Inventory Data
