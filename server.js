@@ -1,20 +1,20 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
+const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-const path = require('path');
-
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Yeh line Express ko batayegi ke frontend files kahan hain
+// Frontend static files configuration
 app.use(express.static(__dirname));
 
-// Root route par index.html bhejne ke liye taake "Cannot GET /" na aaye
+// Root route
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -80,36 +80,25 @@ app.put('/api/inventory/:id', (req, res) => {
   res.status(200).json({ success: true, message: 'Inventory updated successfully', data: inventoryItems[itemIndex] });
 });
 
-// Start Server (Isko hamesha aakhir mein rakhte hain)
-app.listen(PORT, () => {
-  console.log(`Backend Server running on port ${PORT}`);
-});
-
-const express = require('express');
-const nodemailer = require('nodemailer');
-const app = express();
-
-app.use(express.json());
-
-// In-memory store for OTPs (Production mein database use hota hai)
+// In-memory store for OTPs & Users
 const otpStore = {};
+let usersList = [];
 
-// Nodemailer Transporter setup (Apni Gmail aur App Password yahan lagayein)
+// Nodemailer Transporter setup
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: 'AapkiEmail@gmail.com',       // Yahan apni email dein
-        pass: 'AapkaGmailAppPassword'       // Yahan Gmail ka App Password dein
+        user: 'AapkiEmail@gmail.com', 
+        pass: 'AapkaGmailAppPassword' 
     }
 });
 
-// 1. API to Send OTP Email
-api.post('/api/send-otp', async (req, res) => {
+// 1. API to Send OTP Email (Fixed from api.post to app.post)
+app.post('/api/send-otp', async (req, res) => {
     const { email } = req.body;
     
-    // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    otpStore[email] = otp; // Save OTP against email
+    otpStore[email] = otp;
 
     const mailOptions = {
         from: 'AapkiEmail@gmail.com',
@@ -131,38 +120,30 @@ api.post('/api/send-otp', async (req, res) => {
 app.post('/api/verify-otp', (req, res) => {
     const { email, otp } = req.body;
     if (otpStore[email] && otpStore[email] === otp) {
-        delete otpStore[email]; // OTP use hone ke baad delete kar dein
+        delete otpStore[email];
         res.json({ success: true, message: 'OTP verified successfully!' });
     } else {
         res.status(400).json({ success: false, message: 'Invalid or expired OTP code!' });
     }
 });
 
-// Server.js ke andar ye Signup aur Login routes add karein
-
-// In-memory user store (Aap chhein toh bad mein database se connect kar sakte hain)
-let usersList = [];
-
-// 1. Signup API
+// 3. Signup API
 app.post('/api/signup', (req, res) => {
     const { name, email, password } = req.body;
 
-    // Check if email already exists
     const existingUser = usersList.find(u => u.email === email);
     if (existingUser) {
         return res.status(400).json({ success: false, message: 'This email is already registered!' });
     }
 
-    // Save new customer
     usersList.push({ name, email, password, role: 'customer' });
     res.json({ success: true, message: 'Customer account created successfully!' });
 });
 
-// 2. Login API
+// 4. Login API
 app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
 
-    // Hardcoded Admin account (Company credentials)
     if (email === 'admin@estore.com' && password === 'admin123') {
         return res.json({ 
             success: true, 
@@ -171,7 +152,6 @@ app.post('/api/login', (req, res) => {
         });
     }
 
-    // Check in registered users
     const user = usersList.find(u => u.email === email && u.password === password);
     if (user) {
         return res.json({ 
@@ -183,3 +163,49 @@ app.post('/api/login', (req, res) => {
 
     res.status(400).json({ success: false, message: 'Invalid email or password!' });
 });
+
+// 5. Reset Password API
+app.post('/api/reset-password', (req, res) => {
+    const { email, newPassword } = req.body;
+
+    const user = usersList.find(u => u.email === email);
+    if (user) {
+        user.password = newPassword;
+        res.json({ success: true, message: 'Password updated successfully! Please login with your new password.' });
+    } else {
+        res.status(400).json({ success: false, message: 'User not found!' });
+    }
+});
+
+// Sample Products List API
+let productsList = [
+    { id: 1, name: 'Wireless Mouse', price: 1500, stock: 25, category: 'Electronics' },
+    { id: 2, name: 'Mechanical Keyboard', price: 4500, stock: 10, category: 'Electronics' },
+    { id: 3, name: 'Gaming Headset', price: 3500, stock: 15, category: 'Accessories' }
+];
+
+app.get('/api/products', (req, res) => {
+    res.json({ success: true, products: productsList });
+});
+
+app.post('/api/products', (req, res) => {
+    const { name, price, stock, category } = req.body;
+    const newProduct = {
+        id: productsList.length + 1,
+        name,
+        price: Number(price),
+        stock: Number(stock),
+        category
+    };
+    productsList.push(newProduct);
+    res.json({ success: true, message: 'Product added successfully!', product: newProduct });
+});
+
+// Export app for Vercel, and start server locally if not in production
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => {
+        console.log(`Backend Server running on port ${PORT}`);
+    });
+}
+
+module.exports = app;
