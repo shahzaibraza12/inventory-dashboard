@@ -14,8 +14,13 @@ app.use(express.json());
 // Frontend static files configuration
 app.use(express.static(__dirname));
 
-// Root route
+// 1. Root route par ab Login page khulega (Agar aapke login file ka naam kuch aur hai, jaise auth.html, toh yahan change kar lein)
 app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'login.html'));
+});
+
+// 2. Dashboard route (Login ke baad user yahan redirect hoga)
+app.get('/dashboard', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
@@ -93,7 +98,7 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// 1. API to Send OTP Email (Fixed from api.post to app.post)
+// 1. API to Send OTP Email
 app.post('/api/send-otp', async (req, res) => {
     const { email } = req.body;
     
