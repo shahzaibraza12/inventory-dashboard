@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Store - Secure Auth with OTP</title>
+    <title>E-Store - Secure Auth & Admin Panel</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -21,7 +21,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
         }
 
         .auth-container {
@@ -126,12 +126,13 @@
         }
 
         .hidden {
-            display: none;
+            display: none !important;
         }
     </style>
 </head>
 <body>
 
+    <!-- AUTHENTICATION CONTAINER -->
     <div class="auth-container" id="auth-container">
         <!-- 1. LOGIN FORM -->
         <div id="login-section">
@@ -245,12 +246,87 @@
         </div>
     </div>
 
-    <!-- Main Dashboard Container (Hidden until login) -->
-    <div id="app-container" style="display: none; width: 100%; height: 100vh; background: #f3f6f9;">
-        <!-- Aapka dashboard layout yahan aayega -->
-        <div style="padding: 20px;">
-            <h1>Welcome, <span id="display-user-name">User</span>!</h1>
-            <p>Dashboard is active.</p>
+    <!-- MAIN ADMIN DASHBOARD CONTAINER (Hidden until login) -->
+    <div id="app-container" style="display: none; width: 100%; min-height: 100vh; background: #f3f6f9; padding: 25px;">
+        <!-- Top Navbar -->
+        <div style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 25px; border-radius: 12px; box-shadow: 0px 4px 12px rgba(0,0,0,0.05); margin-bottom: 25px;">
+            <h2>⚡ <span id="display-user-name">Store Admin</span> Panel</h2>
+            <button onclick="handleLogout()" style="background: #f64e60; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;">Logout</button>
+        </div>
+
+        <!-- Dashboard Content Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
+            
+            <!-- 1. Add Product Section -->
+            <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0px 4px 12px rgba(0,0,0,0.05);">
+                <h3 style="margin-bottom: 15px; color: #181c32;"><i class="fa-solid fa-plus-circle" style="color: #3699ff;"></i> Add New Product</h3>
+                <form onsubmit="handleAddProduct(event)">
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px;">Product Name</label>
+                        <input type="text" id="prod-name" placeholder="e.g. Wireless Mouse" style="width: 100%; padding: 10px; border: 1px solid #ebedf2; border-radius: 6px; outline: none;" required>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px;">Price (PKR)</label>
+                        <input type="number" id="prod-price" placeholder="e.g. 2500" style="width: 100%; padding: 10px; border: 1px solid #ebedf2; border-radius: 6px; outline: none;" required>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px;">Stock Quantity</label>
+                        <input type="number" id="prod-stock" placeholder="e.g. 15" style="width: 100%; padding: 10px; border: 1px solid #ebedf2; border-radius: 6px; outline: none;" required>
+                    </div>
+                    <button type="submit" style="background: #3699ff; color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; font-weight: 600; cursor: pointer;">Add Product</button>
+                </form>
+            </div>
+
+            <!-- 2. Customer Orders Section -->
+            <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0px 4px 12px rgba(0,0,0,0.05);">
+                <h3 style="margin-bottom: 15px; color: #181c32;"><i class="fa-solid fa-shopping-cart" style="color: #1bc5bd;"></i> Customer Orders</h3>
+                <div style="max-height: 250px; overflow-y: auto;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid #ebedf2; color: #b5b5c3;">
+                                <th style="padding: 8px;">Order ID</th>
+                                <th style="padding: 8px;">Customer</th>
+                                <th style="padding: 8px;">Item</th>
+                                <th style="padding: 8px;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-table-body">
+                            <tr style="border-bottom: 1px solid #ebedf2;">
+                                <td style="padding: 10px;">#1001</td>
+                                <td style="padding: 10px;">Ali Khan</td>
+                                <td style="padding: 10px;">Mechanical Keyboard</td>
+                                <td style="padding: 10px;"><span style="background: rgba(27,197,189,0.1); color: #1bc5bd; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 600;">Completed</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 3. Store Inventory Table -->
+        <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0px 4px 12px rgba(0,0,0,0.05); margin-top: 25px;">
+            <h3 style="margin-bottom: 15px; color: #181c32;"><i class="fa-solid fa-boxes-stacked" style="color: #ffa800;"></i> Store Inventory Management</h3>
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #ebedf2; color: #b5b5c3;">
+                        <th style="padding: 10px;">Product Name</th>
+                        <th style="padding: 10px;">Price</th>
+                        <th style="padding: 10px;">Stock</th>
+                        <th style="padding: 10px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="inventory-table-body">
+                    <tr style="border-bottom: 1px solid #ebedf2;">
+                        <td style="padding: 12px;">Gaming Headset</td>
+                        <td style="padding: 12px;">Rs. 4,500</td>
+                        <td style="padding: 12px;">8</td>
+                        <td style="padding: 12px;">
+                            <button onclick="this.parentElement.parentElement.remove()" style="background: #f64e60; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Delete</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
@@ -314,15 +390,52 @@
                     const user = result.user;
                     document.getElementById('display-user-name').textContent = user.name;
 
-                    // Auth screen hide kar ke dashboard show kar dein
+                    // Hide auth container and display full admin dashboard
                     document.getElementById('auth-container').style.display = 'none';
-                    document.getElementById('app-container').style.display = 'flex';
+                    document.getElementById('app-container').style.display = 'block';
+                    document.body.style.alignItems = 'flex-start';
                 } else {
                     alert(result.message);
                 }
             } catch (error) {
                 alert("Server error during login.");
             }
+        }
+
+        // Handle Logout
+        function handleLogout() {
+            document.getElementById('app-container').style.display = 'none';
+            document.getElementById('auth-container').style.display = 'block';
+            document.body.style.alignItems = 'center';
+            document.getElementById('login-email').value = '';
+            document.getElementById('login-password').value = '';
+            switchSection('login-section');
+        }
+
+        // Handle Add Product in Admin Panel
+        function handleAddProduct(event) {
+            event.preventDefault();
+            const name = document.getElementById('prod-name').value;
+            const price = document.getElementById('prod-price').value;
+            const stock = document.getElementById('prod-stock').value;
+
+            const tableBody = document.getElementById('inventory-table-body');
+            const newRow = document.createElement('tr');
+            newRow.style.borderBottom = "1px solid #ebedf2";
+            newRow.innerHTML = `
+                <td style="padding: 12px;">${name}</td>
+                <td style="padding: 12px;">Rs. ${Number(price).toLocaleString()}</td>
+                <td style="padding: 12px;">${stock}</td>
+                <td style="padding: 12px;">
+                    <button onclick="this.parentElement.parentElement.remove()" style="background: #f64e60; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Delete</button>
+                </td>
+            `;
+            tableBody.appendChild(newRow);
+
+            alert("Product added successfully!");
+            document.getElementById('prod-name').value = '';
+            document.getElementById('prod-price').value = '';
+            document.getElementById('prod-stock').value = '';
         }
 
         // Step 1: Send OTP via Backend
@@ -378,7 +491,7 @@
             document.getElementById('otp-input').value = '';
         }
 
-       // Step 3: Update Password via Backend
+        // Step 3: Update Password via Backend
         async function handleResetPassword(event) {
             event.preventDefault();
             const newPass = document.getElementById('new-password').value;
