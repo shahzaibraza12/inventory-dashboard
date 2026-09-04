@@ -12,7 +12,7 @@ app.use(cors());
 app.use(express.json());
 
 // 1. Static files configuration (Ab saari files ek hi folder mein hain)
-app.use(express.static(__dirname));
+app.use(express.static(__dirname, { index: false }));
 
 // 2. Root route par ab login.html khulega
 app.get('/', (req, res) => {
