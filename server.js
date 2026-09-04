@@ -11,10 +11,10 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// 1. Static files configuration (Ab saari files ek hi folder mein hain)
+// 1. Static files configuration
 app.use(express.static(__dirname, { index: false }));
 
-// 2. Root route par ab login.html khulega
+// 2. Root route par login.html khulega
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'login.html'));
 });
@@ -85,16 +85,18 @@ app.put('/api/inventory/:id', (req, res) => {
   res.status(200).json({ success: true, message: 'Inventory updated successfully', data: inventoryItems[itemIndex] });
 });
 
-// In-memory store for OTPs & Users
+// In-memory store for OTPs & Users (Admin default added)
 const otpStore = {};
-let usersList = [];
+let usersList = [
+    { name: 'Store Admin', email: 'admin@estore.com', password: 'admin123', role: 'admin' }
+];
 
-// Nodemailer Transporter setup
+// Nodemailer Transporter setup (Using .env variables for security)
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: 'AapkiEmail@gmail.com', 
-        pass: 'AapkaGmailAppPassword' 
+        user: process.env.EMAIL_USER || 'AapkiEmail@gmail.com', 
+        pass: process.env.EMAIL_PASS || 'AapkaGmailAppPassword' 
     }
 });
 
@@ -102,11 +104,17 @@ const transporter = nodemailer.createTransport({
 app.post('/api/send-otp', async (req, res) => {
     const { email } = req.body;
     
+    // Check if user exists in usersList or is admin
+    const userExists = usersList.find(u => u.email === email);
+    if (!userExists) {
+        return res.status(400).json({ success: false, message: 'Email not registered in the system!' });
+    }
+
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     otpStore[email] = otp;
 
     const mailOptions = {
-        from: 'AapkiEmail@gmail.com',
+        from: process.env.EMAIL_USER || 'AapkiEmail@gmail.com',
         to: email,
         subject: 'E-Store Password Reset OTP',
         text: `Your password reset verification code is: ${otp}. It is valid for a short time.`
@@ -117,7 +125,9 @@ app.post('/api/send-otp', async (req, res) => {
         res.json({ success: true, message: 'Verification code sent to your email!' });
     } catch (error) {
         console.error('Error sending email:', error);
-        res.status(500).json({ success: false, message: 'Failed to send email. Please try again.' });
+        // Fallback for local testing if SMTP configuration is missing
+        console.log(`[DEV MODE] OTP for ${email}: ${otp}`);
+        res.json({ success: true, message: 'Verification code generated! (Check server console if email fails)' });
     }
 });
 
@@ -149,20 +159,12 @@ app.post('/api/signup', (req, res) => {
 app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
 
-    if (email === 'admin@estore.com' && password === 'admin123') {
-        return res.json({ 
-            success: true, 
-            user: { name: 'Store Admin', email, role: 'admin' },
-            message: 'Login successful as Admin' 
-        });
-    }
-
     const user = usersList.find(u => u.email === email && u.password === password);
     if (user) {
         return res.json({ 
             success: true, 
             user: { name: user.name, email: user.email, role: user.role },
-            message: 'Login successful' 
+            message: `Login successful as ${user.role}` 
         });
     }
 
