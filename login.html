@@ -132,9 +132,7 @@
 </head>
 <body>
 
-    <!-- AUTHENTICATION CONTAINER -->
     <div class="auth-container" id="auth-container">
-        <!-- 1. LOGIN FORM -->
         <div id="login-section">
             <div class="auth-header">
                 <i class="fa-solid fa-boxes-stacked" style="font-size: 36px; color: #3699ff;"></i>
@@ -160,7 +158,6 @@
             </div>
         </div>
 
-        <!-- 2. SIGNUP FORM -->
         <div id="signup-section" class="hidden">
             <div class="auth-header">
                 <i class="fa-solid fa-user-plus" style="font-size: 36px; color: #1bc5bd;"></i>
@@ -187,7 +184,6 @@
             </div>
         </div>
 
-        <!-- 3. FORGOT PASSWORD FORM -->
         <div id="forgot-section" class="hidden">
             <div class="auth-header">
                 <i class="fa-solid fa-key" style="font-size: 36px; color: #ffa800;"></i>
@@ -206,7 +202,6 @@
             </div>
         </div>
 
-        <!-- 4. OTP VERIFICATION FORM -->
         <div id="otp-section" class="hidden">
             <div class="auth-header">
                 <i class="fa-solid fa-shield-halved" style="font-size: 36px; color: #3699ff;"></i>
@@ -225,7 +220,6 @@
             </div>
         </div>
 
-        <!-- 5. NEW PASSWORD FORM -->
         <div id="reset-section" class="hidden">
             <div class="auth-header">
                 <i class="fa-solid fa-lock-open" style="font-size: 36px; color: #1bc5bd;"></i>
@@ -246,18 +240,14 @@
         </div>
     </div>
 
-    <!-- MAIN ADMIN DASHBOARD CONTAINER (Hidden until login) -->
     <div id="app-container" style="display: none; width: 100%; min-height: 100vh; background: #f3f6f9; padding: 25px;">
-        <!-- Top Navbar -->
         <div style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 25px; border-radius: 12px; box-shadow: 0px 4px 12px rgba(0,0,0,0.05); margin-bottom: 25px;">
             <h2>⚡ <span id="display-user-name">Store Admin</span> Panel</h2>
             <button onclick="handleLogout()" style="background: #f64e60; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;">Logout</button>
         </div>
 
-        <!-- Dashboard Content Grid -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
+        <div id="admin-panel-content" style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
             
-            <!-- 1. Add Product Section -->
             <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0px 4px 12px rgba(0,0,0,0.05);">
                 <h3 style="margin-bottom: 15px; color: #181c32;"><i class="fa-solid fa-plus-circle" style="color: #3699ff;"></i> Add New Product</h3>
                 <form onsubmit="handleAddProduct(event)">
@@ -277,7 +267,6 @@
                 </form>
             </div>
 
-            <!-- 2. Customer Orders Section -->
             <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0px 4px 12px rgba(0,0,0,0.05);">
                 <h3 style="margin-bottom: 15px; color: #181c32;"><i class="fa-solid fa-shopping-cart" style="color: #1bc5bd;"></i> Customer Orders</h3>
                 <div style="max-height: 250px; overflow-y: auto;">
@@ -304,16 +293,15 @@
 
         </div>
 
-        <!-- 3. Store Inventory Table -->
-        <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0px 4px 12px rgba(0,0,0,0.05); margin-top: 25px;">
-            <h3 style="margin-bottom: 15px; color: #181c32;"><i class="fa-solid fa-boxes-stacked" style="color: #ffa800;"></i> Store Inventory Management</h3>
+        <div id="store-inventory-container" style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0px 4px 12px rgba(0,0,0,0.05); margin-top: 25px;">
+            <h3 style="margin-bottom: 15px; color: #181c32;"><i class="fa-solid fa-boxes-stacked" style="color: #ffa800;"></i> <span id="section-heading-title">Store Inventory Management</span></h3>
             <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
                 <thead>
                     <tr style="border-bottom: 2px solid #ebedf2; color: #b5b5c3;">
                         <th style="padding: 10px;">Product Name</th>
                         <th style="padding: 10px;">Price</th>
                         <th style="padding: 10px;">Stock</th>
-                        <th style="padding: 10px;">Actions</th>
+                        <th style="padding: 10px;" id="action-th-title">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="inventory-table-body">
@@ -321,7 +309,7 @@
                         <td style="padding: 12px;">Gaming Headset</td>
                         <td style="padding: 12px;">Rs. 4,500</td>
                         <td style="padding: 12px;">8</td>
-                        <td style="padding: 12px;">
+                        <td style="padding: 12px;" class="action-td-item">
                             <button onclick="this.parentElement.parentElement.remove()" style="background: #f64e60; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Delete</button>
                         </td>
                     </tr>
@@ -332,6 +320,15 @@
 
     <script>
         let resetEmail = null;
+
+        // Check if already logged in on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedUser = localStorage.getItem('estore_user');
+            if (savedUser) {
+                const user = JSON.parse(savedUser);
+                setupDashboard(user);
+            }
+        });
 
         function switchSection(sectionId) {
             document.getElementById('login-section').classList.add('hidden');
@@ -387,13 +384,9 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    const user = result.user;
-                    document.getElementById('display-user-name').textContent = user.name;
-
-                    // Hide auth container and display full admin dashboard
-                    document.getElementById('auth-container').style.display = 'none';
-                    document.getElementById('app-container').style.display = 'block';
-                    document.body.style.alignItems = 'flex-start';
+                    const user = result.user; // Contains name, email, role
+                    localStorage.setItem('estore_user', JSON.stringify(user));
+                    setupDashboard(user);
                 } else {
                     alert(result.message);
                 }
@@ -402,8 +395,32 @@
             }
         }
 
+        // Setup Dashboard based on user role
+        function setupDashboard(user) {
+            document.getElementById('display-user-name').textContent = user.name;
+            document.getElementById('auth-container').style.display = 'none';
+            document.getElementById('app-container').style.display = 'block';
+            document.body.style.alignItems = 'flex-start';
+
+            // Check role
+            if (user.role === 'admin') {
+                // Show Admin Panel Elements
+                document.getElementById('admin-panel-content').style.display = 'grid';
+                document.getElementById('section-heading-title').textContent = 'Store Inventory Management';
+                document.getElementById('action-th-title').style.display = 'table-cell';
+                document.querySelectorAll('.action-td-item').forEach(el => el.style.display = 'table-cell');
+            } else {
+                // Show Customer Store View (Hide Admin controls)
+                document.getElementById('admin-panel-content').style.display = 'none';
+                document.getElementById('section-heading-title').textContent = 'Customer Store Products';
+                document.getElementById('action-th-title').style.display = 'none';
+                document.querySelectorAll('.action-td-item').forEach(el => el.style.display = 'none');
+            }
+        }
+
         // Handle Logout
         function handleLogout() {
+            localStorage.removeItem('estore_user');
             document.getElementById('app-container').style.display = 'none';
             document.getElementById('auth-container').style.display = 'block';
             document.body.style.alignItems = 'center';
@@ -426,7 +443,7 @@
                 <td style="padding: 12px;">${name}</td>
                 <td style="padding: 12px;">Rs. ${Number(price).toLocaleString()}</td>
                 <td style="padding: 12px;">${stock}</td>
-                <td style="padding: 12px;">
+                <td style="padding: 12px;" class="action-td-item">
                     <button onclick="this.parentElement.parentElement.remove()" style="background: #f64e60; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Delete</button>
                 </td>
             `;
