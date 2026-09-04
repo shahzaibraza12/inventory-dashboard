@@ -297,6 +297,18 @@
             background: rgba(255, 168, 0, 0.1);
             color: #ffa800;
         }
+
+        .logout-btn {
+            background: #f64e60;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            margin-left: 10px;
+        }
     </style>
 </head>
 <body>
@@ -305,8 +317,8 @@
         <h2><i class="fa-solid fa-boxes-stacked"></i> E-Store</h2>
         <ul>
             <li class="active" data-target="shop-view"><i class="fa-solid fa-store"></i> Customer Shop</li>
-            <li data-target="dashboard-view"><i class="fa-solid fa-chart-pie"></i> Admin Dashboard</li>
-            <li data-target="products-view"><i class="fa-solid fa-box"></i> Inventory Management</li>
+            <li data-target="dashboard-view" id="admin-dash-tab"><i class="fa-solid fa-chart-pie"></i> Admin Dashboard</li>
+            <li data-target="products-view" id="admin-inv-tab"><i class="fa-solid fa-box"></i> Inventory Management</li>
         </ul>
     </aside>
 
@@ -320,7 +332,8 @@
                 </button>
                 <div class="user-profile">
                     <i class="fa-solid fa-circle-user" style="font-size: 24px; color: #3699ff;"></i>
-                    <span>Group 57 Lead</span>
+                    <span id="display-user-name">User</span>
+                    <button class="logout-btn" onclick="handleLogout()">Logout</button>
                 </div>
             </div>
         </header>
@@ -334,7 +347,7 @@
                         <option value="">All Categories</option>
                         <option value="Electronics">Electronics</option>
                         <option value="Furniture">Furniture</option>
-                        <option value="Mobiles">Mobiles</option>
+                        <option value="Accessories">Accessories</option>
                     </select>
                 </div>
                 <div class="products-grid" id="store-products-grid">
@@ -360,7 +373,7 @@
                     <div class="card">
                         <div class="card-info">
                             <h3>Total Categories</h3>
-                            <p id="total-categories">5</p>
+                            <p id="total-categories">3</p>
                         </div>
                         <div class="card-icon" style="color: #1bc5bd; background: rgba(27, 197, 189, 0.1);"><i class="fa-solid fa-layer-group"></i></div>
                     </div>
@@ -399,6 +412,29 @@
         let allProducts = [];
         let cart = [];
 
+        // Check if user is logged in via localStorage
+        window.addEventListener('DOMContentLoaded', () => {
+            const loggedInUser = JSON.parse(localStorage.getItem('estore_user'));
+            if (loggedInUser) {
+                document.getElementById('display-user-name').textContent = loggedInUser.name;
+                
+                // Hide admin tabs if user is not admin
+                if (loggedInUser.role !== 'admin') {
+                    document.getElementById('admin-dash-tab').style.display = 'none';
+                    document.getElementById('admin-inv-tab').style.display = 'none';
+                }
+            } else {
+                // If not logged in, redirect back to login page
+                window.location.href = '/';
+            }
+            loadInventory();
+        });
+
+        function handleLogout() {
+            localStorage.removeItem('estore_user');
+            window.location.href = '/';
+        }
+
         async function loadInventory() {
             try {
                 const response = await fetch('/api/inventory');
@@ -423,7 +459,7 @@
                     <div class="product-card">
                         <h4>${item.name}</h4>
                         <p class="price">$${item.price}</p>
-                        <p style="font-size:12px; color:#b5b5c3;">Category: ${item.category}</p>
+                        <p style="font-size:12px; color:#b5b5c3;">Category: ${item.category || 'General'}</p>
                         <p class="stock-status">${item.stock > 0 ? 'In Stock (' + item.stock + ')' : 'Out of Stock'}</p>
                         <button class="btn-primary" onclick="addToCart(${item.id})" ${item.stock <= 0 ? 'disabled style="background:#ccc; cursor:not-allowed;"' : ''}>Add to Cart</button>
                     </div>
@@ -439,8 +475,8 @@
                     <tr>
                         <td>${item.id}</td>
                         <td>${item.name}</td>
-                        <td>${item.sku}</td>
-                        <td>${item.category}</td>
+                        <td>${item.sku || 'N/A'}</td>
+                        <td>${item.category || 'General'}</td>
                         <td>$${item.price}</td>
                         <td>${item.stock}</td>
                         <td><span class="badge ${item.stock > 10 ? 'badge-success' : 'badge-warning'}">${item.stock > 10 ? 'In Stock' : 'Low Stock'}</span></td>
@@ -494,7 +530,7 @@
             const name = prompt("Enter product name:");
             if (!name) return;
             const sku = prompt("Enter product SKU code:");
-            const category = prompt("Enter Category:");
+            const category = prompt("Enter Category (Electronics/Furniture/Accessories):");
             const price = prompt("Enter Price:");
             const stock = prompt("Enter Stock quantity:");
 
@@ -546,8 +582,6 @@
                 document.getElementById('page-title').textContent = titles[target];
             });
         });
-
-        document.addEventListener('DOMContentLoaded', loadInventory);
     </script>
 </body>
 </html>
