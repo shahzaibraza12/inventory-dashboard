@@ -214,3 +214,16 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 module.exports = app;
+
+// Frontend static files configuration (Ek folder peechay ja kar inventory-frontend ko access karega)
+app.use(express.static(path.join(__dirname, '../inventory-frontend')));
+
+// Root route par login.html bhejne ke liye
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../inventory-frontend/login.html'));
+});
+
+// Dashboard route
+app.get('/dashboard', (req, res) => {
+    res.sendFile(path.join(__dirname, '../inventory-frontend/index.html'));
+});
