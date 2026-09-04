@@ -11,17 +11,17 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// Frontend static files configuration
-app.use(express.static(__dirname));
+// 1. Frontend static files configuration (Yeh inventory-frontend folder ko point kar raha hai)
+app.use(express.static(path.join(__dirname, '../inventory-frontend')));
 
-// 1. Root route par ab Login page khulega (Agar aapke login file ka naam kuch aur hai, jaise auth.html, toh yahan change kar lein)
+// 2. Root route par ab hamesha login.html khulega
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'login.html'));
+    res.sendFile(path.join(__dirname, '../inventory-frontend/login.html'));
 });
 
-// 2. Dashboard route (Login ke baad user yahan redirect hoga)
+// 3. Dashboard route
 app.get('/dashboard', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, '../inventory-frontend/index.html'));
 });
 
 // In-Memory Inventory Data
@@ -214,16 +214,3 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 module.exports = app;
-
-// Frontend static files configuration (Ek folder peechay ja kar inventory-frontend ko access karega)
-app.use(express.static(path.join(__dirname, '../inventory-frontend')));
-
-// Root route par login.html bhejne ke liye
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../inventory-frontend/login.html'));
-});
-
-// Dashboard route
-app.get('/dashboard', (req, res) => {
-    res.sendFile(path.join(__dirname, '../inventory-frontend/index.html'));
-});
