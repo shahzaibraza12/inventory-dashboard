@@ -84,3 +84,102 @@ app.put('/api/inventory/:id', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Backend Server running on port ${PORT}`);
 });
+
+const express = require('express');
+const nodemailer = require('nodemailer');
+const app = express();
+
+app.use(express.json());
+
+// In-memory store for OTPs (Production mein database use hota hai)
+const otpStore = {};
+
+// Nodemailer Transporter setup (Apni Gmail aur App Password yahan lagayein)
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'AapkiEmail@gmail.com',       // Yahan apni email dein
+        pass: 'AapkaGmailAppPassword'       // Yahan Gmail ka App Password dein
+    }
+});
+
+// 1. API to Send OTP Email
+api.post('/api/send-otp', async (req, res) => {
+    const { email } = req.body;
+    
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    otpStore[email] = otp; // Save OTP against email
+
+    const mailOptions = {
+        from: 'AapkiEmail@gmail.com',
+        to: email,
+        subject: 'E-Store Password Reset OTP',
+        text: `Your password reset verification code is: ${otp}. It is valid for a short time.`
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        res.json({ success: true, message: 'Verification code sent to your email!' });
+    } catch (error) {
+        console.error('Error sending email:', error);
+        res.status(500).json({ success: false, message: 'Failed to send email. Please try again.' });
+    }
+});
+
+// 2. API to Verify OTP
+app.post('/api/verify-otp', (req, res) => {
+    const { email, otp } = req.body;
+    if (otpStore[email] && otpStore[email] === otp) {
+        delete otpStore[email]; // OTP use hone ke baad delete kar dein
+        res.json({ success: true, message: 'OTP verified successfully!' });
+    } else {
+        res.status(400).json({ success: false, message: 'Invalid or expired OTP code!' });
+    }
+});
+
+// Server.js ke andar ye Signup aur Login routes add karein
+
+// In-memory user store (Aap chhein toh bad mein database se connect kar sakte hain)
+let usersList = [];
+
+// 1. Signup API
+app.post('/api/signup', (req, res) => {
+    const { name, email, password } = req.body;
+
+    // Check if email already exists
+    const existingUser = usersList.find(u => u.email === email);
+    if (existingUser) {
+        return res.status(400).json({ success: false, message: 'This email is already registered!' });
+    }
+
+    // Save new customer
+    usersList.push({ name, email, password, role: 'customer' });
+    res.json({ success: true, message: 'Customer account created successfully!' });
+});
+
+// 2. Login API
+app.post('/api/login', (req, res) => {
+    const { email, password } = req.body;
+
+    // Hardcoded Admin account (Company credentials)
+    if (email === 'admin@estore.com' && password === 'admin123') {
+        return res.json({ 
+            success: true, 
+            user: { name: 'Store Admin', email, role: 'admin' },
+            message: 'Login successful as Admin' 
+        });
+    }
+
+    // Check in registered users
+    const user = usersList.find(u => u.email === email && u.password === password);
+    if (user) {
+        return res.json({ 
+            success: true, 
+            user: { name: user.name, email: user.email, role: user.role },
+            message: 'Login successful' 
+        });
+    }
+
+    res.status(400).json({ success: false, message: 'Invalid email or password!' });
+});
