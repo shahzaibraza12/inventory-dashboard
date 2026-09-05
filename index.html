@@ -266,12 +266,63 @@
             cart = [];
             updateCartUI();
             closeCartSidebar();
+
+            function saveCustomerOrder(cartItems, customerDetails, totalAmount) {
+    // Ek naya order object banana
+    const newOrder = {
+        id: "#" + Math.floor(1000 + Math.random() * 9000), // Random 4-digit Order ID jaise #1024
+        customerName: customerDetails.name || "Customer",
+        items: cartItems.map(item => item.name).join(', '), // Saare items ka naam
+        total: totalAmount,
+        status: "Pending" // Shuru mein status Pending hoga
+    };
+
+    // Pehle se mojood orders ko localStorage se nikalna
+    let orders = JSON.parse(localStorage.getItem('estore_orders')) || [
+        { id: "#1001", customerName: "Ali Khan", items: "Mechanical Keyboard", total: 6500, status: "Completed" }
+    ];
+
+    // Naya order list mein shamil karna
+    orders.push(newOrder);
+
+    // Wapis localStorage mein save karna
+    localStorage.setItem('estore_orders', JSON.stringify(orders));
+}
         }
 
         function handleLogout() {
             localStorage.removeItem('estore_user');
             window.location.href = 'login.html';
         }
+
+        // Customer ke page par products load karne ke liye
+function loadCustomerProducts() {
+    const products = JSON.parse(localStorage.getItem('estore_products')) || [
+        { id: 1, name: "Gaming Headset", price: 4500, stock: 8 },
+        { id: 2, name: "Mechanical Keyboard", price: 6500, stock: 12 }
+    ];
+
+    const storeContainer = document.getElementById('store-products-container'); // Jahan products show hotay hain
+    storeContainer.innerHTML = '';
+
+    products.forEach(prod => {
+        // Yahan aap apne product card ka HTML design render karein ge
+        const productCard = `
+            <div class="product-card">
+                <h3>${prod.name}</h3>
+                <p>Price: Rs. ${prod.price.toLocaleString()}</p>
+                <p>Stock: ${prod.stock}</p>
+                <button onclick="addToCart(${prod.id})">Add to Cart</button>
+            </div>
+        `;
+        storeContainer.innerHTML += productCard;
+    });
+}
+
+// Page load par call karein
+window.addEventListener('DOMContentLoaded', () => {
+    loadCustomerProducts();
+});
     </script>
 </body>
 </html>
