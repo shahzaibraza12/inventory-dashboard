@@ -3,578 +3,274 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Store - Customer Shopping</title>
+    <title>E-Store - Customer Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: #1e1e2d; color: #333; padding: 20px; }
+        
+        .container { max-width: 1100px; margin: auto; }
+        
+        /* Navbar */
+        .navbar { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 25px; border-radius: 12px; box-shadow: 0px 4px 12px rgba(0,0,0,0.1); margin-bottom: 25px; }
+        .navbar h2 { color: #181c32; font-size: 20px; }
+        .nav-actions { display: flex; gap: 15px; align-items: center; }
+        .cart-btn { background: #f3f6f9; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; color: #3699ff; position: relative; }
+        .logout-btn { background: #f64e60; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; }
 
-        body {
-            background-color: #1e1e2d;
-            color: #333;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
+        /* Search Bar */
+        .search-bar { margin-bottom: 25px; }
+        .search-bar input { width: 100%; padding: 12px 20px; border: 1px solid #ebedf2; border-radius: 8px; outline: none; font-size: 15px; background: white; }
 
-        .auth-container {
-            background: #fff;
-            padding: 40px;
-            border-radius: 16px;
-            width: 100%;
-            max-width: 420px;
-            box-shadow: 0px 15px 35px rgba(0,0,0,0.3);
-        }
+        /* Products Grid */
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+        .product-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0px 4px 12px rgba(0,0,0,0.05); display: flex; flex-direction: column; padding: 15px; }
+        .product-card img { width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; }
+        .product-card h4 { font-size: 16px; color: #181c32; margin-bottom: 5px; }
+        .product-card .price { color: #3699ff; font-weight: 700; font-size: 15px; margin-bottom: 10px; }
+        
+        .card-buttons { display: flex; gap: 8px; margin-top: auto; }
+        .btn-cart { flex: 1; background: #f3f6f9; color: #3699ff; border: none; padding: 8px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px; }
+        .btn-buy { flex: 1; background: #1bc5bd; color: white; border: none; padding: 8px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px; }
+        .btn-cart:hover { background: #e1e9f0; }
+        .btn-buy:hover { background: #118d87; }
 
-        .auth-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .auth-header h2 {
-            font-size: 24px;
-            color: #181c32;
-            margin-top: 10px;
-        }
-
-        .auth-header p {
-            font-size: 14px;
-            color: #b5b5c3;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #3f4254;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid #ebedf2;
-            border-radius: 8px;
-            outline: none;
-            font-size: 14px;
-            transition: 0.3s;
-        }
-
-        .form-group input:focus {
-            border-color: #3699ff;
-            box-shadow: 0 0 0 3px rgba(54, 153, 255, 0.1);
-        }
-
-        .auth-btn {
-            width: 100%;
-            background: #3699ff;
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.3s;
-            font-size: 15px;
-        }
-
-        .auth-btn:hover {
-            background: #187de4;
-        }
-
-        .auth-switch {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 14px;
-            color: #b5b5c3;
-        }
-
-        .auth-switch span {
-            color: #3699ff;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        .auth-switch span:hover {
-            text-decoration: underline;
-        }
-
-        .forgot-link {
-            text-align: right;
-            margin-bottom: 15px;
-            font-size: 13px;
-        }
-
-        .forgot-link span {
-            color: #3699ff;
-            cursor: pointer;
-        }
-
-        .forgot-link span:hover {
-            text-decoration: underline;
-        }
-
-        .hidden {
-            display: none !important;
-        }
+        /* Sidebar Cart / Checkout Modal */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; }
+        .sidebar { position: fixed; top: 0; right: -400px; width: 400px; height: 100%; background: white; box-shadow: -5px 0 25px rgba(0,0,0,0.2); z-index: 1000; padding: 25px; overflow-y: auto; transition: 0.3s; }
+        .sidebar.open { right: 0; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #3f4254; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ebedf2; border-radius: 6px; outline: none; font-size: 14px; }
+        
+        .checkout-summary { background: #f9f9f9; padding: 15px; border-radius: 8px; margin: 15px 0; font-size: 14px; }
+        .checkout-summary div { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .total-row { font-weight: 700; font-size: 16px; border-top: 1px solid #ddd; padding-top: 8px; color: #181c32; }
     </style>
 </head>
 <body>
 
-    <!-- AUTHENTICATION CONTAINER -->
-    <div class="auth-container" id="auth-container">
-        <!-- 1. LOGIN FORM -->
-        <div id="login-section">
-            <div class="auth-header">
-                <i class="fa-solid fa-store" style="font-size: 36px; color: #3699ff;"></i>
-                <h2>Customer Login</h2>
-                <p>Login to explore the E-Store</p>
-            </div>
-            <form onsubmit="handleLogin(event)">
-                <div class="form-group">
-                    <label>Email Address</label>
-                    <input type="email" id="login-email" placeholder="name@example.com" required>
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="login-password" placeholder="Enter your password" required>
-                </div>
-                <div class="forgot-link">
-                    <span onclick="switchSection('forgot-section')">Forgot Password?</span>
-                </div>
-                <button type="submit" class="auth-btn">Login</button>
-            </form>
-            <div class="auth-switch">
-                Don't have an account? <span onclick="switchSection('signup-section')">Sign Up</span>
-            </div>
-        </div>
-
-        <!-- 2. SIGNUP FORM -->
-        <div id="signup-section" class="hidden">
-            <div class="auth-header">
-                <i class="fa-solid fa-user-plus" style="font-size: 36px; color: #1bc5bd;"></i>
-                <h2>Create Account</h2>
-                <p>Register a new shopping profile</p>
-            </div>
-            <form onsubmit="handleSignup(event)">
-                <div class="form-group">
-                    <label>Full Name</label>
-                    <input type="text" id="signup-name" placeholder="Ali" required>
-                </div>
-                <div class="form-group">
-                    <label>Email Address</label>
-                    <input type="email" id="signup-email" placeholder="name@example.com" required>
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="signup-password" placeholder="Create a password" required>
-                </div>
-                <button type="submit" class="auth-btn" style="background: #1bc5bd;">Sign Up</button>
-            </form>
-            <div class="auth-switch">
-                Already have an account? <span onclick="switchSection('login-section')">Login</span>
-            </div>
-        </div>
-
-        <!-- 3. FORGOT PASSWORD FORM -->
-        <div id="forgot-section" class="hidden">
-            <div class="auth-header">
-                <i class="fa-solid fa-key" style="font-size: 36px; color: #ffa800;"></i>
-                <h2>Reset Password</h2>
-                <p>Enter your registered email address</p>
-            </div>
-            <form onsubmit="handleSendOTP(event)">
-                <div class="form-group">
-                    <label>Email Address</label>
-                    <input type="email" id="forgot-email" placeholder="name@example.com" required>
-                </div>
-                <button type="submit" class="auth-btn" style="background: #ffa800;">Send Verification Code</button>
-            </form>
-            <div class="auth-switch">
-                Remember your password? <span onclick="switchSection('login-section')">Login</span>
-            </div>
-        </div>
-
-        <!-- 4. OTP VERIFICATION FORM -->
-        <div id="otp-section" class="hidden">
-            <div class="auth-header">
-                <i class="fa-solid fa-shield-halved" style="font-size: 36px; color: #3699ff;"></i>
-                <h2>Enter Verification Code</h2>
-                <p>We have sent a 6-digit code to your email</p>
-            </div>
-            <form onsubmit="handleVerifyOTP(event)">
-                <div class="form-group">
-                    <label>6-Digit Code</label>
-                    <input type="text" id="otp-input" placeholder="Enter 6-digit code" maxlength="6" required>
-                </div>
-                <button type="submit" class="auth-btn">Verify Code</button>
-            </form>
-            <div class="auth-switch">
-                Didn't receive code? <span onclick="switchSection('forgot-section')">Resend</span>
-            </div>
-        </div>
-
-        <!-- 5. NEW PASSWORD FORM -->
-        <div id="reset-section" class="hidden">
-            <div class="auth-header">
-                <i class="fa-solid fa-lock-open" style="font-size: 36px; color: #1bc5bd;"></i>
-                <h2>New Password</h2>
-                <p>Enter your new password below</p>
-            </div>
-            <form onsubmit="handleResetPassword(event)">
-                <div class="form-group">
-                    <label>New Password</label>
-                    <input type="password" id="new-password" placeholder="Enter new password" required>
-                </div>
-                <div class="form-group">
-                    <label>Confirm Password</label>
-                    <input type="password" id="confirm-password" placeholder="Confirm new password" required>
-                </div>
-                <button type="submit" class="auth-btn" style="background: #1bc5bd;">Update Password</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- CUSTOMER STORE PANEL CONTAINER (Hidden until login) -->
-    <div id="app-container" style="display: none; width: 100%; max-width: 1100px; min-height: 90vh; background: #f3f6f9; padding: 25px; border-radius: 12px; margin: auto;">
-        
+    <div class="container">
         <!-- Top Navbar -->
-        <div style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 25px; border-radius: 12px; box-shadow: 0px 4px 12px rgba(0,0,0,0.05); margin-bottom: 25px;">
-            <h2>🛒 Welcome, <span id="display-user-name">Customer</span></h2>
-            <div style="display: flex; gap: 15px; align-items: center;">
-                <div style="font-weight: 600; color: #3f4254; cursor: pointer;" onclick="toggleCartModal()">
-                    <i class="fa-solid fa-cart-shopping" style="color: #3699ff; font-size: 18px;"></i> Cart (<span id="cart-count">0</span>)
-                </div>
-                <button onclick="handleLogout()" style="background: #f64e60; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;">Logout</button>
+        <div class="navbar">
+            <h2>🛒 E-Store Customer Dashboard</h2>
+            <div class="nav-actions">
+                <button class="cart-btn" onclick="openCartSidebar()">
+                    <i class="fa-solid fa-cart-shopping"></i> Cart (<span id="cart-count">0</span>)
+                </button>
+                <button class="logout-btn" onclick="handleLogout()">Logout</button>
             </div>
         </div>
 
-        <!-- Search and Filter Bar -->
-        <div style="margin-bottom: 25px;">
-            <input type="text" id="search-input" onkeyup="searchProducts()" placeholder="🔍 Search products by name..." style="width: 100%; padding: 12px 20px; border: 1px solid #ebedf2; border-radius: 8px; outline: none; font-size: 15px; background: white; box-shadow: 0px 4px 12px rgba(0,0,0,0.03);">
+        <!-- Search Bar -->
+        <div class="search-bar">
+            <input type="text" id="search-input" onkeyup="searchProducts()" placeholder="🔍 Search products...">
         </div>
 
-        <!-- Products Grid Container -->
-        <div id="products-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px;">
-            <!-- Dynamic Products will be rendered here -->
+        <!-- Products Grid -->
+        <div id="products-grid" class="products-grid">
+            <!-- Dynamic products will render here -->
         </div>
-        
     </div>
 
-    <!-- CART / CHECKOUT SIDEBAR OR MODAL -->
-    <div id="cart-modal" style="display: none; position: fixed; top: 0; right: 0; width: 380px; height: 100%; background: white; box-shadow: -5px 0 25px rgba(0,0,0,0.2); z-index: 1000; padding: 25px; overflow-y: auto;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #ebedf2; padding-bottom: 15px;">
-            <h3>🛍️ Your Shopping Cart</h3>
-            <i class="fa-solid fa-xmark" style="cursor: pointer; font-size: 18px;" onclick="toggleCartModal()"></i>
+    <!-- CART / CHECKOUT SIDEBAR -->
+    <div class="modal-overlay" id="modal-overlay" onclick="closeCartSidebar()"></div>
+    <div class="sidebar" id="cart-sidebar">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #ebedf2; padding-bottom: 10px;">
+            <h3>🛍️ Checkout & Cart</h3>
+            <i class="fa-solid fa-xmark" style="cursor: pointer; font-size: 18px;" onclick="closeCartSidebar()"></i>
         </div>
-        <div id="cart-items-container" style="margin-bottom: 20px; max-height: 55vh; overflow-y: auto;">
-            <p style="color: #b5b5c3; text-align: center; margin-top: 40px;">Your cart is empty</p>
+
+        <!-- Cart Items List -->
+        <div id="sidebar-items" style="max-height: 30vh; overflow-y: auto; margin-bottom: 15px;">
+            <p style="color: #b5b5c3; text-align: center; font-size: 14px;">Your cart is empty</p>
         </div>
-        <div style="border-top: 1px solid #ebedf2; padding-top: 15px;">
-            <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 16px; margin-bottom: 20px;">
-                <span>Total:</span>
-                <span id="cart-total">Rs. 0</span>
-            </div>
-            <button onclick="checkoutOrder()" style="width: 100%; background: #1bc5bd; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 15px;">Proceed to Buy</button>
+
+        <!-- Customer Details Form -->
+        <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="cust-name" placeholder="Enter your name">
         </div>
+        <div class="form-group">
+            <label>Delivery Address</label>
+            <input type="text" id="cust-address" placeholder="Enter complete address">
+        </div>
+        <div class="form-group">
+            <label>Phone Number</label>
+            <input type="text" id="cust-phone" placeholder="03XXXXXXXXX">
+        </div>
+        <div class="form-group">
+            <label>Payment Method</label>
+            <select id="payment-method" onchange="calculateTotal()">
+                <option value="online">Online Bank Transfer (Rs. 0 Extra Charges)</option>
+                <option value="cod">Cash on Delivery - COD (Rs. 60 Extra Charges)</option>
+            </select>
+        </div>
+
+        <!-- Bill Calculation Summary -->
+        <div class="checkout-summary">
+            <div><span>Subtotal:</span> <span id="summary-subtotal">Rs. 0</span></div>
+            <div><span>Delivery Charges:</span> <span id="summary-charges">Rs. 0</span></div>
+            <div class="total-row"><span>Total Amount:</span> <span id="summary-total">Rs. 0</span></div>
+        </div>
+
+        <button onclick="placeOrder()" style="width: 100%; background: #1bc5bd; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 15px;">Confirm & Place Order</button>
     </div>
 
     <script>
-        let resetEmail = null;
-
-        // Dummy Store Products Data (Aap isme mazeed products add kar sakte hain)
+        // Sample Products Database
         const storeProducts = [
-            { id: 1, name: "Gaming Headset", price: 4500, stock: 8, image: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=300" },
-            { id: 2, name: "Mechanical Keyboard", price: 6500, stock: 12, image: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=300" },
-            { id: 3, name: "Wireless Mouse", price: 2500, stock: 15, image: "https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=300" },
-            { id: 4, name: "HD Monitor 24-inch", price: 28000, stock: 5, image: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=300" }
+            { id: 1, name: "Gaming Headset", price: 4500, image: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=300" },
+            { id: 2, name: "Mechanical Keyboard", price: 6500, image: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=300" },
+            { id: 3, name: "Wireless Mouse", price: 2500, image: "https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=300" },
+            { id: 4, name: "HD Monitor 24-inch", price: 28000, image: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=300" }
         ];
 
         let cart = [];
 
+        // Render products on page load
         window.addEventListener('DOMContentLoaded', () => {
-            const savedUser = localStorage.getItem('estore_user');
-            if (savedUser) {
-                const user = JSON.parse(savedUser);
-                showCustomerPanel(user);
-            }
+            renderProducts(storeProducts);
         });
 
-        function switchSection(sectionId) {
-            document.getElementById('login-section').classList.add('hidden');
-            document.getElementById('signup-section').classList.add('hidden');
-            document.getElementById('forgot-section').classList.add('hidden');
-            document.getElementById('otp-section').classList.add('hidden');
-            document.getElementById('reset-section').classList.add('hidden');
-
-            document.getElementById(sectionId).classList.remove('hidden');
-        }
-
-        async function handleSignup(event) {
-            event.preventDefault();
-            const name = document.getElementById('signup-name').value.trim();
-            const email = document.getElementById('signup-email').value.trim().toLowerCase();
-            const password = document.getElementById('signup-password').value;
-
-            try {
-                const response = await fetch('/api/signup', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, password })
-                });
-                const result = await response.json();
-
-                if (result.success) {
-                    alert(result.message);
-                    switchSection('login-section');
-                } else {
-                    alert(result.message);
-                }
-            } catch (error) {
-                alert("Server error during signup.");
-            }
-        }
-
-        async function handleLogin(event) {
-            event.preventDefault();
-            const email = document.getElementById('login-email').value.trim().toLowerCase();
-            const password = document.getElementById('login-password').value;
-
-            try {
-                const response = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                });
-                const result = await response.json();
-
-                if (result.success) {
-                    const user = result.user;
-                    localStorage.setItem('estore_user', JSON.stringify(user));
-                    showCustomerPanel(user);
-                } else {
-                    alert(result.message);
-                }
-            } catch (error) {
-                alert("Server error during login.");
-            }
-        }
-
-        function showCustomerPanel(user) {
-            document.getElementById('display-user-name').textContent = user.name;
-            document.getElementById('auth-container').style.display = 'none';
-            document.getElementById('app-container').style.display = 'block';
-            document.body.style.alignItems = 'flex-start';
-            renderProducts(storeProducts);
-        }
-
-        function handleLogout() {
-            localStorage.removeItem('estore_user');
-            document.getElementById('app-container').style.display = 'none';
-            document.getElementById('auth-container').style.display = 'block';
-            document.body.style.alignItems = 'center';
-            switchSection('login-section');
-        }
-
-        // Render Products Catalog
         function renderProducts(products) {
             const grid = document.getElementById('products-grid');
             grid.innerHTML = '';
-
-            if (products.length === 0) {
-                grid.innerHTML = '<p style="color: #b5b5c3; grid-column: span 4; text-align: center;">No products found</p>';
-                return;
-            }
-
-            products.forEach(prod => {
+            products.forEach(p => {
                 grid.innerHTML += `
-                    <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0px 4px 12px rgba(0,0,0,0.05); display: flex; flex-direction: column;">
-                        <img src="${prod.image}" alt="${prod.name}" style="width: 100%; height: 160px; object-fit: cover;">
-                        <div style="padding: 15px; display: flex; flex-direction: column; flex-grow: 1;">
-                            <h4 style="font-size: 16px; color: #181c32; margin-bottom: 8px;">${prod.name}</h4>
-                            <p style="color: #3699ff; font-weight: 700; font-size: 15px; margin-bottom: 8px;">Rs. ${prod.price.toLocaleString()}</p>
-                            <p style="color: #b5b5c3; font-size: 12px; margin-bottom: 15px;">Stock: ${prod.stock} available</p>
-                            <button onclick="addToCart(${prod.id})" style="margin-top: auto; background: #3699ff; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s;">Add to Cart</button>
+                    <div class="product-card">
+                        <img src="${p.image}" alt="${p.name}">
+                        <h4>${p.name}</h4>
+                        <div class="price">Rs. ${p.price.toLocaleString()}</div>
+                        <div class="card-buttons">
+                            <button class="btn-cart" onclick="addToCart(${p.id})">Add to Cart</button>
+                            <button class="btn-buy" onclick="directBuy(${p.id})">Buy Now</button>
                         </div>
                     </div>
                 `;
             });
         }
 
-        // Search Functionality
+        // Search Function
         function searchProducts() {
             const query = document.getElementById('search-input').value.toLowerCase();
             const filtered = storeProducts.filter(p => p.name.toLowerCase().includes(query));
             renderProducts(filtered);
         }
 
-        // Add to Cart Logic
+        // Add to Cart
         function addToCart(productId) {
             const product = storeProducts.find(p => p.id === productId);
-            const cartItem = cart.find(item => item.id === productId);
-
-            if (cartItem) {
-                if (cartItem.quantity < product.stock) {
-                    cartItem.quantity++;
-                } else {
-                    alert("Maximum available stock reached!");
-                    return;
-                }
+            const item = cart.find(i => i.id === productId);
+            if (item) {
+                item.quantity++;
             } else {
                 cart.push({ ...product, quantity: 1 });
             }
-
             updateCartUI();
-            alert(`${product.name} added to cart!`);
+            alert(`${product.name} has been added to your cart!`);
         }
 
-        // Update Cart Side Panel UI
+        // Direct Buy Now
+        function directBuy(productId) {
+            const product = storeProducts.find(p => p.id === productId);
+            cart = [{ ...product, quantity: 1 }];
+            updateCartUI();
+            openCartSidebar();
+        }
+
         function updateCartUI() {
-            const container = document.getElementById('cart-items-container');
-            const countBadge = document.getElementById('cart-count');
-            const totalElement = document.getElementById('cart-total');
-
+            const countElem = document.getElementById('cart-count');
+            const itemsContainer = document.getElementById('sidebar-items');
+            
             let totalCount = 0;
-            let totalPrice = 0;
+            let subtotal = 0;
 
-            container.innerHTML = '';
+            itemsContainer.innerHTML = '';
 
             if (cart.length === 0) {
-                container.innerHTML = '<p style="color: #b5b5c3; text-align: center; margin-top: 40px;">Your cart is empty</p>';
-                countBadge.textContent = 0;
-                totalElement.textContent = 'Rs. 0';
+                itemsContainer.innerHTML = '<p style="color: #b5b5c3; text-align: center; font-size: 14px;">Your cart is empty</p>';
+                countElem.textContent = 0;
+                calculateTotal();
                 return;
             }
 
             cart.forEach(item => {
                 totalCount += item.quantity;
-                totalPrice += item.price * item.quantity;
+                subtotal += item.price * item.quantity;
 
-                container.innerHTML += `
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #ebedf2; padding-bottom: 10px;">
+                itemsContainer.innerHTML += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #ebedf2; padding-bottom: 8px; font-size: 13px;">
                         <div>
-                            <h5 style="font-size: 14px; color: #181c32;">${item.name}</h5>
-                            <span style="font-size: 12px; color: #b5b5c3;">Rs. ${item.price} x ${item.quantity}</span>
+                            <strong>${item.name}</strong><br>
+                            Rs. ${item.price} x ${item.quantity}
                         </div>
-                        <button onclick="removeFromCart(${item.id})" style="background: none; border: none; color: #f64e60; cursor: pointer; font-size: 14px;"><i class="fa-solid fa-trash"></i></button>
+                        <button onclick="removeItem(${item.id})" style="background:none; border:none; color:red; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 `;
             });
 
-            countBadge.textContent = totalCount;
-            totalElement.textContent = `Rs. ${totalPrice.toLocaleString()}`;
+            countElem.textContent = totalCount;
+            calculateTotal();
         }
 
-        // Remove item from cart
-        function removeFromCart(productId) {
-            cart = cart.filter(item => item.id !== productId);
+        function removeItem(id) {
+            cart = cart.filter(i => i.id !== id);
             updateCartUI();
         }
 
-        // Toggle Cart Modal Sidebar
-        function toggleCartModal() {
-            const modal = document.getElementById('cart-modal');
-            modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
+        // Calculate Totals with COD Charges Logic (Rs. 60)
+        function calculateTotal() {
+            let subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            let paymentMethod = document.getElementById('payment-method').value;
+            
+            // COD extra charges set to Rs. 60, Online set to Rs. 0
+            let extraCharges = (paymentMethod === 'cod') ? 60 : 0;
+            let grandTotal = subtotal + (subtotal > 0 ? extraCharges : 0);
+
+            document.getElementById('summary-subtotal').textContent = `Rs. ${subtotal.toLocaleString()}`;
+            document.getElementById('summary-charges').textContent = `Rs. ${extraCharges.toLocaleString()}`;
+            document.getElementById('summary-total').textContent = `Rs. ${grandTotal.toLocaleString()}`;
         }
 
-        // Checkout / Buy Order
-        function checkoutOrder() {
+        function openCartSidebar() {
             if (cart.length === 0) {
-                alert("Your cart is empty!");
+                alert("Your cart is empty! Please select a product first.");
                 return;
             }
-            alert("Order placed successfully! Thank you for shopping.");
+            document.getElementById('modal-overlay').style.display = 'block';
+            document.getElementById('cart-sidebar').classList.add('open');
+            calculateTotal();
+        }
+
+        function closeCartSidebar() {
+            document.getElementById('modal-overlay').style.display = 'none';
+            document.getElementById('cart-sidebar').classList.remove('open');
+        }
+
+        // Place Order Function
+        function placeOrder() {
+            const name = document.getElementById('cust-name').value.trim();
+            const address = document.getElementById('cust-address').value.trim();
+            const phone = document.getElementById('cust-phone').value.trim();
+
+            if (!name || !address || !phone) {
+                alert("Please fill in all your details (Name, Address, Phone)!");
+                return;
+            }
+
+            alert("🎉 Congratulations! Your order has been placed successfully.");
             cart = [];
             updateCartUI();
-            toggleCartModal();
+            closeCartSidebar();
         }
 
-        async function handleSendOTP(event) {
-            event.preventDefault();
-            const email = document.getElementById('forgot-email').value.trim().toLowerCase();
-
-            try {
-                const response = await fetch('/api/send-otp', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email })
-                });
-                const result = await response.json();
-
-                if (result.success) {
-                    resetEmail = email;
-                    alert(result.message);
-                    switchSection('otp-section');
-                } else {
-                    alert(result.message);
-                }
-            } catch (error) {
-                alert("Network error.");
-            }
-        }
-
-        async function handleVerifyOTP(event) {
-            event.preventDefault();
-            const enteredOTP = document.getElementById('otp-input').value.trim();
-
-            try {
-                const response = await fetch('/api/verify-otp', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: resetEmail, otp: enteredOTP })
-                });
-                const result = await response.json();
-
-                if (result.success) {
-                    alert(result.message);
-                    switchSection('reset-section');
-                } else {
-                    alert(result.message);
-                }
-            } catch (error) {
-                alert("Verification failed.");
-            }
-        }
-
-        async function handleResetPassword(event) {
-            event.preventDefault();
-            const newPass = document.getElementById('new-password').value;
-            const confirmPass = document.getElementById('confirm-password').value;
-
-            if (newPass !== confirmPass) {
-                alert("Passwords do not match!");
-                return;
-            }
-
-            try {
-                const response = await fetch('/api/reset-password', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: resetEmail, newPassword: newPass })
-                });
-                const result = await response.json();
-
-                if (result.success) {
-                    alert(result.message);
-                    switchSection('login-section');
-                } else {
-                    alert(result.message);
-                }
-            } catch (error) {
-                alert("Error updating password.");
-            }
-            resetEmail = null;
+        function handleLogout() {
+            localStorage.removeItem('estore_user');
+            window.location.href = 'login.html';
         }
     </script>
 </body>
