@@ -142,160 +142,149 @@
         </div>
     </div>
 
-    <script>
-        // Check Admin Authentication on Load
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedUser = localStorage.getItem('estore_user');
-            if (!savedUser) {
-                window.location.href = '../login.html';
-                return;
+   <script>
+    // Page load par saare initialization ek sath
+    window.addEventListener('DOMContentLoaded', () => {
+        // 1. Auth Check
+        const savedUser = localStorage.getItem('estore_user');
+        if (!savedUser) {
+            window.location.href = '../login.html';
+            return;
+        }
+
+        const user = JSON.parse(savedUser);
+        if (user.role !== 'admin') {
+            alert("Access denied! Admins only.");
+            window.location.href = '../index.html';
+            return;
+        }
+
+        document.getElementById('display-admin-name').textContent = user.name;
+
+        // 2. Load Tables & Stats
+        renderInventoryTable();
+        loadAdminOrders();
+    });
+
+    // Handle Logout
+    function handleLogout() {
+        localStorage.removeItem('estore_user');
+        window.location.href = '../login.html';
+    }
+
+    // Handle Add Product
+    function handleAddProduct(event) {
+        event.preventDefault();
+        const name = document.getElementById('prod-name').value;
+        const price = document.getElementById('prod-price').value;
+        const stock = document.getElementById('prod-stock').value;
+
+        const newProduct = {
+            id: Date.now(),
+            name: name,
+            price: Number(price),
+            stock: Number(stock)
+        };
+
+        let products = JSON.parse(localStorage.getItem('estore_products')) || [
+            { id: 1, name: "Gaming Headset", price: 4500, stock: 8 },
+            { id: 2, name: "Mechanical Keyboard", price: 6500, stock: 12 }
+        ];
+
+        products.push(newProduct);
+        localStorage.setItem('estore_products', JSON.stringify(products));
+        
+        renderInventoryTable();
+        loadAdminOrders(); // Stats update karne ke liye
+
+        alert("Product added successfully and synced!");
+        document.getElementById('prod-name').value = '';
+        document.getElementById('prod-price').value = '';
+        document.getElementById('prod-stock').value = '';
+    }
+
+    // Inventory Table ko render karne ka function
+    function renderInventoryTable() {
+        let products = JSON.parse(localStorage.getItem('estore_products')) || [
+            { id: 1, name: "Gaming Headset", price: 4500, stock: 8 },
+            { id: 2, name: "Mechanical Keyboard", price: 6500, stock: 12 }
+        ];
+
+        const tableBody = document.getElementById('inventory-table-body');
+        if (!tableBody) return;
+        tableBody.innerHTML = '';
+
+        products.forEach((prod) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${prod.name}</td>
+                <td>Rs. ${prod.price.toLocaleString()}</td>
+                <td>${prod.stock}</td>
+                <td>
+                    <button class="delete-btn" onclick="deleteProduct(${prod.id})">Delete</button>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    // Product Delete karne ka function
+    function deleteProduct(id) {
+        let products = JSON.parse(localStorage.getItem('estore_products')) || [];
+        products = products.filter(p => p.id !== id);
+        localStorage.setItem('estore_products', JSON.stringify(products));
+        renderInventoryTable();
+        loadAdminOrders(); // Stats update karne ke liye
+    }
+
+    // Admin Orders aur Stats load karne ka function
+    function loadAdminOrders() {
+        let orders = JSON.parse(localStorage.getItem('estore_orders')) || [];
+        let products = JSON.parse(localStorage.getItem('estore_products')) || [];
+
+        const ordersTableBody = document.getElementById('orders-table-body');
+        if (!ordersTableBody) return;
+
+        ordersTableBody.innerHTML = '';
+        let totalRevenue = 0;
+
+        orders.forEach((order, index) => {
+            if (order.status === "Completed") {
+                totalRevenue += Number(order.total || 0);
             }
 
-            const user = JSON.parse(savedUser);
-            if (user.role !== 'admin') {
-                alert("Access denied! Admins only.");
-                window.location.href = '../index.html';
-                return;
-            }
+            const badgeColor = order.status === "Completed" ? "#1bc5bd" : "#ffa800";
+            const badgeBg = order.status === "Completed" ? "rgba(27,197,189,0.1)" : "rgba(255,168,0,0.1)";
 
-            document.getElementById('display-admin-name').textContent = user.name;
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${order.id}</td>
+                <td>${order.customerName}</td>
+                <td>${order.items}</td>
+                <td>
+                    <span style="background: ${badgeBg}; color: ${badgeColor}; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer;" onclick="toggleOrderStatus(${index})">
+                        ${order.status || "Pending"} 🔄
+                    </span>
+                </td>
+            `;
+            ordersTableBody.appendChild(row);
         });
 
-        // Handle Logout
-        function handleLogout() {
-            localStorage.removeItem('estore_user');
-            window.location.href = '../login.html';
-        }
-
-        // Handle Add Product
-        function handleAddProduct(event) {
-    event.preventDefault();
-    const name = document.getElementById('prod-name').value;
-    const price = document.getElementById('prod-price').value;
-    const stock = document.getElementById('prod-stock').value;
-
-    // Naya product object banana
-    const newProduct = {
-        id: Date.now(), // Unique ID
-        name: name,
-        price: Number(price),
-        stock: Number(stock)
-    };
-
-    // Pehle se mojood products ko localStorage se nikalna (ya default array lena)
-    let products = JSON.parse(localStorage.getItem('estore_products')) || [
-        { id: 1, name: "Gaming Headset", price: 4500, stock: 8 },
-        { id: 2, name: "Mechanical Keyboard", price: 6500, stock: 12 }
-    ];
-
-    // Naya product list mein shamil karna
-    products.push(newProduct);
-
-    // Wapis localStorage mein save karna
-    localStorage.setItem('estore_products', JSON.stringify(products));
-
-    // Table ko update karna
-    renderInventoryTable();
-
-    alert("Product added successfully and synced!");
-    document.getElementById('prod-name').value = '';
-    document.getElementById('prod-price').value = '';
-    document.getElementById('prod-stock').value = '';
-}
-
-// Inventory Table ko render karne ka function
-function renderInventoryTable() {
-    let products = JSON.parse(localStorage.getItem('estore_products')) || [
-        { id: 1, name: "Gaming Headset", price: 4500, stock: 8 },
-        { id: 2, name: "Mechanical Keyboard", price: 6500, stock: 12 }
-    ];
-
-    const tableBody = document.getElementById('inventory-table-body');
-    tableBody.innerHTML = '';
-
-    products.forEach((prod, index) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${prod.name}</td>
-            <td>Rs. ${prod.price.toLocaleString()}</td>
-            <td>${prod.stock}</td>
-            <td>
-                <button class="delete-btn" onclick="deleteProduct(${prod.id})">Delete</button>
-            </td>
-        `;
-        tableBody.appendChild(row);
-    });
-}
-
-// Product Delete karne ka function
-function deleteProduct(id) {
-    let products = JSON.parse(localStorage.getItem('estore_products')) || [];
-    products = products.filter(p => p.id !== id);
-    localStorage.setItem('estore_products', JSON.stringify(products));
-    renderInventoryTable();
-}
-
-// Page load hone par table load ho
-window.addEventListener('DOMContentLoaded', () => {
-    // (Aapka purana auth check code yahan rahega)
-    renderInventoryTable();
-});
-
-function loadAdminOrders() {
-    let orders = JSON.parse(localStorage.getItem('estore_orders')) || [];
-    let products = JSON.parse(localStorage.getItem('estore_products')) || [];
-
-    const ordersTableBody = document.getElementById('orders-table-body');
-    if (!ordersTableBody) return;
-
-    ordersTableBody.innerHTML = '';
-    let totalRevenue = 0;
-
-    orders.forEach((order, index) => {
-        // Revenue calculate karna sirf completed orders ki
-        if (order.status === "Completed") {
-            totalRevenue += Number(order.total || 0);
-        }
-
-        const badgeColor = order.status === "Completed" ? "#1bc5bd" : "#ffa800";
-        const badgeBg = order.status === "Completed" ? "rgba(27,197,189,0.1)" : "rgba(255,168,0,0.1)";
-
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${order.id}</td>
-            <td>${order.customerName}</td>
-            <td>${order.items}</td>
-            <td>Rs. ${Number(order.total || 0).toLocaleString()}</td>
-            <td>
-                <span style="background: ${badgeBg}; color: ${badgeColor}; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer;" onclick="toggleOrderStatus(${index})">
-                    ${order.status} 🔄
-                </span>
-            </td>
-        `;
-        ordersTableBody.appendChild(row);
-    });
-
-    // Update Stats Cards
-    document.getElementById('stat-total-products').textContent = products.length;
-    document.getElementById('stat-total-orders').textContent = orders.length;
-    document.getElementById('stat-total-revenue').textContent = "Rs. " + totalRevenue.toLocaleString();
-}
-
-// Order Status Toggle karne ka function (Pending <-> Completed)
-function toggleOrderStatus(index) {
-    let orders = JSON.parse(localStorage.getItem('estore_orders')) || [];
-    if (orders[index]) {
-        orders[index].status = orders[index].status === "Pending" ? "Completed" : "Pending";
-        localStorage.setItem('estore_orders', JSON.stringify(orders));
-        loadAdminOrders();
+        // Update Stats Cards
+        document.getElementById('stat-total-products').textContent = products.length;
+        document.getElementById('stat-total-orders').textContent = orders.length;
+        document.getElementById('stat-total-revenue').textContent = "Rs. " + totalRevenue.toLocaleString();
     }
-}
 
-// Page load par orders load karne ke liye
-window.addEventListener('DOMContentLoaded', () => {
-    // (Aapka purana auth aur inventory wala code yahan rahega)
-    loadAdminOrders();
-});
-    </script>
+    // Order Status Toggle karne ka function
+    function toggleOrderStatus(index) {
+        let orders = JSON.parse(localStorage.getItem('estore_orders')) || [];
+        if (orders[index]) {
+            orders[index].status = orders[index].status === "Pending" ? "Completed" : "Pending";
+            localStorage.setItem('estore_orders', JSON.stringify(orders));
+            loadAdminOrders();
+        }
+    }
+</script>
 </body>
 </html>
