@@ -18,6 +18,20 @@ app.use(express.static(__dirname, { index: false }));
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'login.html'));
 });
+// 2. Root route par login.html khulega
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'login.html'));
+});
+
+// Admin panel route
+app.get('/admin.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
+// 3. Dashboard route
+app.get('/dashboard', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // 3. Dashboard route
 app.get('/dashboard', (req, res) => {
